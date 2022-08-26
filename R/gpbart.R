@@ -1,5 +1,5 @@
 ## GP-Bart
-#' @useDynLib copygpbart
+#' @useDynLib apgpbart
 #' @importFrom Rcpp sourceCpp
 # ==================================#
 # Objects to test the tree_complete_conditional function
