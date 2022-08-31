@@ -138,7 +138,7 @@ update_g_ap <- function(tree,
 
 
   # Defining the kernel function
-  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)})})
+  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
 
   # Getting the sample from the new normal distribution
   omega_inv <- lapply(terminal_nodes, function(y){ chol2inv(chol((y$Omega_matrix + diag(1e-8,nrow = nrow(y$Omega_matrix)))))})
@@ -199,7 +199,7 @@ update_residuals <- function(tree,
 
 
   # Defining the kernel function
-  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)})})
+  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
 
   train_distance_matrix_node <- mapply(terminal_nodes,phi_vec,FUN =  function(z,phi_values) {
     symm_distance_matrix(m1 = x_train[z$train_observations_index,,drop = FALSE],phi_vector = phi_values)
@@ -311,8 +311,6 @@ gp_bart <- function(x_train, y, x_test,
   if(node_min_size>=nrow(x_train)){
     stop("Node min size is greater than the number of observation")
   }
-
-  # This parameter is a "scale paramter" to the GP
 
 
   # Creating the prediction elements to be stored
@@ -1257,7 +1255,7 @@ inverse_omega_plus_I <- function(tree,
   })
 
   # Defining the kernel function
-  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)})})
+  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
 
   # Calculating Omega matrix INVERSE
   distance_matrices <- mapply(terminal_nodes,phi_vec, FUN = function(y,z) {
