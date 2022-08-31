@@ -207,14 +207,14 @@ rmse <- function(obs, pred) {
 
 # Normalize BART function (Same way ONLY THE COVARIATE NOW)
 normalize_covariates_bart <- function(y, a = NULL, b = NULL) {
-  
+
   # Defining the a and b
   if( is.null(a) & is.null(b)){
     a <- min(y)
     b <- max(y)
   }
   # This will normalize y between -0.5 and 0.5
-  y  <- (y - a)/(b - a) 
+  y  <- (y - a)/(b - a)
   return(y)
 }
 
@@ -268,26 +268,26 @@ crps <- function(y,means,sds){
 }
 
 # Calculate optim \phi value
-log_like_partial_length_parameter <- function(phi,
-                                              squared_distance_matrix,
-                                              nu,
-                                              tau,
-                                              y){
-  
-  # Find the omega first
-  omega <- kernel_function(squared_distance_matrix = squared_distance_matrix,nu = nu,phi = phi) 
-  K_y <- omega + diag(1/tau, nrow = nrow(squared_distance_matrix))
-  
-  # Calculating alpha  = solve(K_y,y)
-  alpha <- solve(K_y,y)
-  
-  # Calculating the partial matrix
-  K_partial_l <- -(phi^-3)*omega*squared_distance_matrix
-  
-  
-  # THE MINUS HERE IS JUST BECAUSE THE optim FUNCTION ONLY MINIMIZES
-  return(- 0.5*sum(diag( crossprod(tcrossprod(alpha)-chol2inv(chol(K_y)),K_partial_l ))) )
-}
+# log_like_partial_length_parameter <- function(phi,
+#                                               squared_distance_matrix,
+#                                               nu,
+#                                               tau,
+#                                               y){
+#
+#   # Find the omega first
+#   omega <- kernel_function(squared_distance_matrix = squared_distance_matrix,nu = nu,phi = phi)
+#   K_y <- omega + diag(1/tau, nrow = nrow(squared_distance_matrix))
+#
+#   # Calculating alpha  = solve(K_y,y)
+#   alpha <- solve(K_y,y)
+#
+#   # Calculating the partial matrix
+#   K_partial_l <- -(phi^-3)*omega*squared_distance_matrix
+#
+#
+#   # THE MINUS HERE IS JUST BECAUSE THE optim FUNCTION ONLY MINIMIZES
+#   return(- 0.5*sum(diag( crossprod(tcrossprod(alpha)-chol2inv(chol(K_y)),K_partial_l ))) )
+# }
 
 
 # sq_dist_matrix <- symm_distance_matrix(m1 = x)
@@ -296,7 +296,7 @@ log_like_partial_length_parameter <- function(phi,
 # tau <- 100
 # min_dist <- sqrt(min(sq_dist_matrix))
 # max_dist <- sqrt(max(sq_dist_matrix))
-# 
+#
 # phi_max <- numeric()
 # optim_length <- optim(par = runif(n = 1,
 #                                   min = min_dist,
@@ -309,6 +309,6 @@ log_like_partial_length_parameter <- function(phi,
 #                       nu = nu,
 #                       tau = tau,
 #                       y = y_vec )
-# 
-# optim_length$par                      
+#
+# optim_length$par
 

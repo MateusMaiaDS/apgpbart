@@ -256,8 +256,8 @@ kernel_function <- function(squared_distance_matrix_phi, nu) {
 
   # Case nu = 0
   if(nu == 0 || nu > 1e13){
-    kernel_matrix <- matrix(0, nrow = dim(squared_distance_matrix)[1],
-                            ncol = dim(squared_distance_matrix)[2])
+    kernel_matrix <- matrix(0, nrow = dim(squared_distance_matrix_phi)[1],
+                            ncol = dim(squared_distance_matrix_phi)[2])
   }
   # Getting the kernel matrix
   return(kernel_matrix)
