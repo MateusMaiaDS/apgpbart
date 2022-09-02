@@ -531,7 +531,7 @@ gp_bart <- function(x_train, y, x_test,
   )
 
   # Calculating the phi_vector
-  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} )}) # Takking care with this phi addition to avoid \phi =0
+  phi_vec <- apply(x_train,2,function(y){abs(diff(range(y)))/(2*pi*1)}) # Takking care with this phi addition to avoid \phi =0
 
 
   # Setting initial values for phi vector
