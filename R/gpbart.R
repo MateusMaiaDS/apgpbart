@@ -158,7 +158,7 @@ update_g_ap <- function(tree,
                                   FUN = function(node,resid_sample)
                                   {gp_main_slow_no_noise(x_train = x_train[node$train_observations_index,,drop = FALSE],
                                                          x_star = x_test[node$test_observations_index,,drop = FALSE],
-                                                         y_train = resid_sample,
+                                                         y_train = resid_sample,phi_vec = phi_vec,
                                                          nu = nu,get_sample = FALSE)$mu_pred},SIMPLIFY = FALSE)
 
   # Adding the mu values calculated
@@ -214,7 +214,7 @@ update_residuals <- function(tree,
                                    {mu_val + gp_main_slow(x_train = x_train[node$train_observations_index,,drop = FALSE],
                                                           x_star = x_train[node$train_observations_index,,drop = FALSE],
                                                           y_train = (resid_val-mu_val),
-                                                          tau = tau,nu = nu,
+                                                          tau = tau,nu = nu,phi_vec = phi_vec,
                                                           get_sample = TRUE)$mu_pred},SIMPLIFY = FALSE)
 
   # Debugging the function
@@ -1268,8 +1268,9 @@ inverse_omega_plus_I <- function(tree,
   # phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
 
   # Calculating Omega matrix INVERSE
-  distance_matrices <- mapply(terminal_nodes,phi_vec, FUN = function(y,z) {
-    symm_distance_matrix(matrix(x_train[y$train_observations_index, gp_variables], nrow = length(y$train_observations_index)),phi_vector = z)
+  distance_matrices <- mapply(terminal_nodes, FUN = function(y) {
+    symm_distance_matrix(matrix(x_train[y$train_observations_index, gp_variables], nrow = length(y$train_observations_index)),
+                         phi_vector = phi_vec)
   }, SIMPLIFY = FALSE)
 
   # Calculating Omega
