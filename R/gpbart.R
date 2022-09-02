@@ -115,7 +115,8 @@ update_g_ap <- function(tree,
                         x_test,
                         nu,
                         residuals,
-                        tau){
+                        tau,
+                        phi_vec){
 
   # New g (new vector prediction for g)
   residuals_train_new <- rep(NA, nrow(x_train))
@@ -138,7 +139,7 @@ update_g_ap <- function(tree,
 
 
   # Defining the kernel function
-  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
+  # phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
 
   # Getting the sample from the new normal distribution
   omega_inv <- lapply(terminal_nodes, function(y){ chol2inv(chol((y$Omega_matrix + diag(1e-8,nrow = nrow(y$Omega_matrix)))))})
@@ -176,7 +177,8 @@ update_g_ap <- function(tree,
 update_residuals <- function(tree,
                              x_train,
                              x_test,
-                             nu, residuals, tau) {
+                             nu, residuals,
+                             tau, phi_vec) {
 
   # New g (new vector prediction for g)
   residuals_train_new <- rep(NA, nrow(x_train))
@@ -199,7 +201,7 @@ update_residuals <- function(tree,
 
 
   # Defining the kernel function
-  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
+  # phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
 
   train_distance_matrix_node <- mapply(terminal_nodes,phi_vec,FUN =  function(z,phi_values) {
     symm_distance_matrix(m1 = x_train[z$train_observations_index,,drop = FALSE],phi_vector = phi_values)
@@ -507,6 +509,7 @@ gp_bart <- function(x_train, y, x_test,
     phi_store <-
     phi_proposal_store <- matrix(NA, ncol = number_trees, nrow = store_size)
 
+
   # Creating the list of trees stumps
   for(i in seq_len(number_trees)) {
     # Creating the fixed two split trees
@@ -526,6 +529,9 @@ gp_bart <- function(x_train, y, x_test,
     style = 3, width = 50,
     label = "Running GP-Sum-Sampler..."
   )
+
+  # Calculating the phi_vector
+  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} )}) # Takking care with this phi addition to avoid \phi =0
 
 
   # Setting initial values for phi vector
@@ -806,12 +812,14 @@ gp_bart <- function(x_train, y, x_test,
           # Getting the inverse for the current terminal nodes
           current_trees[[j]] <- inverse_omega_plus_I(tree = current_trees[[j]],
                                                      x_train = x_train, tau = tau,
-                                                     nu = nu_vector[j])
+                                                     nu = nu_vector[j],
+                                                     gp_variables = gp_variables,phi_vec = phi_vec)
 
           # Getting the inverse for the new tree terminal nodes
           new_trees[[j]] <- inverse_omega_plus_I(tree = new_trees[[j]],
                                                  x_train = x_train,tau = tau,
-                                                 nu = nu_vector[j])
+                                                 nu = nu_vector[j],gp_variables = gp_variables,
+                                                 phi_vec = phi_vec,number_trees = number_trees)
 
           # Calculating the likelihood of the new tree
           likelihood_new <- tree_complete_conditional_gpbart(
@@ -884,7 +892,8 @@ gp_bart <- function(x_train, y, x_test,
             # Getting the inverse for the current terminal nodes
             current_trees[[j]] <- new_trees[[j]] <- inverse_omega_plus_I(tree = current_trees[[j]],
                                                                          x_train = x_train, tau = tau,
-                                                                         nu = nu_vector[j])
+                                                                         nu = nu_vector[j],gp_variables = gp_variables,
+                                                                         phi_vec = phi_vec)
 
             # Creating the likelihood object
             likelihood_new <- likelihood_old <-
@@ -945,7 +954,7 @@ gp_bart <- function(x_train, y, x_test,
           tree = current_trees[[j]],
           x_train = x_train,x_test = x_test,
           residuals = current_partial_residuals,
-          nu = nu_vector[j],tau = tau
+          nu = nu_vector[j],tau = tau,phi_vec = phi_vec
         )
 
         predictions[j, ] <- update_residuals_aux$residuals_train
@@ -1237,7 +1246,8 @@ inverse_omega_plus_I <- function(tree,
                                  nu,
                                  tau,
                                  number_trees = number_trees,
-                                 gp_variables = colnames(x_train)  # Selecting which gp-variables to use
+                                 gp_variables = colnames(x_train),  # Selecting which gp-variables to use
+                                 phi_vec
 
 ) {
   # Selecting terminal nodes names
@@ -1255,7 +1265,7 @@ inverse_omega_plus_I <- function(tree,
   })
 
   # Defining the kernel function
-  phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
+  # phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
 
   # Calculating Omega matrix INVERSE
   distance_matrices <- mapply(terminal_nodes,phi_vec, FUN = function(y,z) {

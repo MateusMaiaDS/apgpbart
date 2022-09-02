@@ -1,9 +1,9 @@
 # GP-function main
-gp_main <- function(x_train, y_train, x_star, tau, phi, nu, distance_matrix_train, get_cov_star = FALSE) {
+gp_main <- function(x_train, y_train, x_star, tau, phi, nu, distance_matrix_train,phi_vec, get_cov_star = FALSE) {
 
 
   # Defining the kernel function
-  phi_vec <- (apply(x_train,2,function(y){abs(diff(range(y)))/(2*pi*1)+1e-5})) # E_upcrossing = 1
+  # phi_vec <- (apply(x_train,2,function(y){abs(diff(range(y)))/(2*pi*1)+1e-5})) # E_upcrossing = 1
 
   # Getting the distance matrix from x_train and x_star
   distance_matrix_K_star <- distance_matrix(m1 = x_train, m2 = x_star,phi_vector = phi_vec)
@@ -52,12 +52,9 @@ gp_main <- function(x_train, y_train, x_star, tau, phi, nu, distance_matrix_trai
 
 # GP-function main
 gp_main_sample <- function(x_train, y_train, x_star, tau,
-                           nu, distance_matrix_train,
+                           nu, distance_matrix_train,phi_vec,
                            get_sample =  TRUE) {
 
-
-  # Defining the kernel function
-  phi_vec <- (apply(x_train,2,function(y){abs(diff(range(y)))/(2*pi*1)+1e-5})) # E_upcrossing = 1
 
   # Getting the distance matrix from x_train and x_star
   distance_matrix_K_star <- distance_matrix(m1 = x_train, m2 = x_star, phi_vector = phi_vec)
@@ -105,14 +102,16 @@ gp_main_sample <- function(x_train, y_train, x_star, tau,
 
 
 # GP-function main
-gp_main_slow <- function(x_train, y_train, x_star, tau,
+gp_main_slow <- function(x_train, y_train,
+                         x_star, tau,
                          nu,
+                         phi_vec,
                          get_sample =  FALSE) {
 
 
 
   # Defining the kernel function
-  phi_vec <- (apply(x_train,2,function(y){abs(diff(range(y)))/(2*pi*1)+1e-5})) # E_upcrossing = 1
+  # phi_vec <- (apply(x_train,2,function(y){abs(diff(range(y)))/(2*pi*1)+1e-5})) # E_upcrossing = 1
 
   # print(phi_vec)
   if((nrow(x_train) == 0) || (nrow(x_star)==0 )){
@@ -175,6 +174,7 @@ gp_main_slow_no_noise <- function(x_train,
                                   y_train,
                                   x_star,
                                   nu,
+                                  phi_vec,
                                   get_sample =  FALSE) {
 
 
@@ -184,7 +184,7 @@ gp_main_slow_no_noise <- function(x_train,
   # y_train <- matrix(y_train)
 
   # Defining the kernel function
-  phi_vec <- (apply(x_train,2,function(y){abs(diff(range(y)))/(2*pi*1)+1e-5})) # E_upcrossing = 1
+  # phi_vec <- (apply(x_train,2,function(y){abs(diff(range(y)))/(2*pi*1)+1e-5})) # E_upcrossing = 1
 
   # print(phi_vec)
   if((nrow(x_train) == 0) || (nrow(x_star)==0 )){
@@ -244,12 +244,6 @@ gp_main_slow_no_noise <- function(x_train,
 # Function to create the the function K that will be used
 # in a Gaussian process (Andrew's Version)
 kernel_function <- function(squared_distance_matrix_phi, nu) {
-
-  # Defining the kernel function
-  # phi_vec <- (apply(x_train,2,function(y){abs(diff(range(y)))}))
-
-  # squared_distance_matrix <- symm_distance_matrix(m1 = x_train,phi_vector = phi_vec)
-
 
   # Calculating the square matrix
   kernel_matrix <- (exp(-squared_distance_matrix_phi)) / nu
