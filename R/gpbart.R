@@ -955,7 +955,7 @@ gp_bart <- function(x_train, y, x_test,
           tree = current_trees[[j]],
           x_train = x_train,x_test = x_test,
           residuals = current_partial_residuals,
-          nu = nu_vector[j],tau = tau,phi_vec = phi_vec
+          nu = nu_vector[j],tau = tau,phi_vec = phi_vec,
           gp_variables = gp_variables
         )
 
