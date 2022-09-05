@@ -308,6 +308,7 @@ gp_bart <- function(x_train, y, x_test,
                     prob_tau = 0.9,
                     kappa = 0.5,
                     bart_boolean = TRUE,
+                    up_crossings = 1, # Default number of expected number of up-crossings by a Gaussian Processes
                     bart_number_iter = 250) {
 
   # Changing the node_min_size
@@ -532,7 +533,7 @@ gp_bart <- function(x_train, y, x_test,
   )
 
   # Calculating the phi_vector
-  phi_vec <- apply(x_train[,gp_variables,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)}) # Takking care with this phi addition to avoid \phi =0
+  phi_vec <- apply(x_train[,gp_variables,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*up_crossings)}) # Takking care with this phi addition to avoid \phi =0
 
 
   # Setting initial values for phi vector
