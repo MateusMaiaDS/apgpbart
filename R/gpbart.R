@@ -116,7 +116,8 @@ update_g_ap <- function(tree,
                         nu,
                         residuals,
                         tau,
-                        phi_vec){
+                        phi_vec,
+                        gp_variables){
 
   # New g (new vector prediction for g)
   residuals_train_new <- rep(NA, nrow(x_train))
@@ -156,8 +157,8 @@ update_g_ap <- function(tree,
   test_residuals_sample <- mapply(terminal_nodes,
                                   train_residuals_sample,
                                   FUN = function(node,resid_sample)
-                                  {gp_main_slow_no_noise(x_train = x_train[node$train_observations_index,,drop = FALSE],
-                                                         x_star = x_test[node$test_observations_index,,drop = FALSE],
+                                  {gp_main_slow_no_noise(x_train = x_train[node$train_observations_index,gp_variables,drop = FALSE],
+                                                         x_star = x_test[node$test_observations_index,gp_variables,drop = FALSE],
                                                          y_train = resid_sample,phi_vec = phi_vec,
                                                          nu = nu,get_sample = FALSE)$mu_pred},SIMPLIFY = FALSE)
 
@@ -955,6 +956,7 @@ gp_bart <- function(x_train, y, x_test,
           x_train = x_train,x_test = x_test,
           residuals = current_partial_residuals,
           nu = nu_vector[j],tau = tau,phi_vec = phi_vec
+          gp_variables = gp_variables
         )
 
         predictions[j, ] <- update_residuals_aux$residuals_train
@@ -1269,7 +1271,7 @@ inverse_omega_plus_I <- function(tree,
 
   # Calculating Omega matrix INVERSE
   distance_matrices <- mapply(terminal_nodes, FUN = function(y) {
-    symm_distance_matrix(matrix(x_train[y$train_observations_index, gp_variables], nrow = length(y$train_observations_index)),
+    symm_distance_matrix(matrix(x_train[y$train_observations_index, gp_variables, drop = FALSE], nrow = length(y$train_observations_index)),
                          phi_vector = phi_vec)
   }, SIMPLIFY = FALSE)
 
