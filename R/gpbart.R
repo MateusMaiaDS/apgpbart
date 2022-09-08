@@ -1404,7 +1404,7 @@ update_nu <- function(current_tree,
   likelihood_old <- numeric()
 
   # Getting the proposal nu
-  proposal_nu <- sample(c(1e18,c(0.1,0.5,1,2,4)*(4*(K_bart^2)*number_trees)),size = 1)
+  proposal_nu <- sample(c(1e18,c(0.01,0.05,0.1,0.5,1,2,4,8,16)*(4*(K_bart^2)*number_trees)),size = 1)
 
 
         new_trees <- inverse_omega_plus_I(tree = current_tree,x_train = x_train,
@@ -1423,8 +1423,8 @@ update_nu <- function(current_tree,
 
 
 
-  likelihood_new_total <- likelihood_new + dgamma(x = proposal_nu,shape = (4*(K_bart^2)*number_trees),rate = (4*(K_bart^2)*number_trees)*0.0001,log = TRUE)
-  likelihood_old_total <-  likeli_obj$log_posterior +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees),rate = (4*(K_bart^2)*number_trees)*0.0001,log = TRUE)
+  likelihood_new_total <- likelihood_new + dgamma(x = proposal_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
+  likelihood_old_total <-  likeli_obj$log_posterior +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
 
   acceptance <- exp((likelihood_new_total)-(likelihood_old_total))
 
