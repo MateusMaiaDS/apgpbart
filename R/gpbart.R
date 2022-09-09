@@ -1404,7 +1404,7 @@ update_nu <- function(current_tree,
   likelihood_old <- numeric()
 
   # Getting the proposal nu
-  proposal_nu <- sample(c(1e18,c(0.01,0.05,0.1,0.5,1,2,4,8,16)*(4*(K_bart^2)*number_trees)),size = 1)
+  proposal_nu <- sample(c(1e18,c(1,2,4,8,16)*(4*(K_bart^2)*number_trees)),size = 1)
 
 
         new_trees <- inverse_omega_plus_I(tree = current_tree,x_train = x_train,
