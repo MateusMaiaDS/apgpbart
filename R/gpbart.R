@@ -1406,7 +1406,7 @@ update_nu <- function(current_tree,
   # Getting the proposal nu
   proposal_nu <- sample(c(1e18,c(1,2,4,8,16)*(4*(K_bart^2)*number_trees)),size = 1)
 
-
+        if(proposal_nu<1e17){
         new_trees <- inverse_omega_plus_I(tree = current_tree,x_train = x_train,
                                                    nu = proposal_nu,tau = tau,number_trees = number_trees,gp_variables = gp_variables,
                                                    phi_vec = phi_vec)
@@ -1420,7 +1420,11 @@ update_nu <- function(current_tree,
           number_trees = number_trees
         )$log_posterior
 
-
+        } else {
+          likelihood_new <- tree_complete_conditional_bart(x_train = x_train,
+                                                           residuals_values = current_partial_residuals,
+                                                           tree = current_tree,tau_mu = tau_mu,tau = tau)
+        }
 
 
   likelihood_new_total <- likelihood_new + dgamma(x = proposal_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
