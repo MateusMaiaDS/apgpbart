@@ -1427,8 +1427,8 @@ update_nu <- function(current_tree,
         }
 
 
-  likelihood_new_total <- likelihood_new + dgamma(x = proposal_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
-  likelihood_old_total <-  likeli_obj$log_posterior +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
+  likelihood_new_total <- likelihood_new #+ dgamma(x = proposal_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
+  likelihood_old_total <-  likeli_obj$log_posterior# +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
 
   acceptance <- exp((likelihood_new_total)-(likelihood_old_total))
 
