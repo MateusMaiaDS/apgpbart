@@ -482,7 +482,11 @@ gp_bart <- function(x_train, y, x_test,
   store_size <- (n_iter - burn)
   tree_store <- vector("list", store_size)
   tau_store <- c()
-  nu_post <- phi_post <- matrix(NA,ncol = number_trees, nrow = store_size)
+  nu_post <-  matrix(NA,ncol = number_trees, nrow = store_size)
+  phi_post_matrix  <- matrix(NA,ncol = ncol(x_train), nrow = number_trees)
+
+  # Phi post is actually a list
+  phi_post <- list()
 
   y_hat_store <-
     y_hat_store_proposal <- matrix(NA, ncol = length(y), nrow = store_size)
@@ -554,7 +558,7 @@ gp_bart <- function(x_train, y, x_test,
 
       # Storing posterior of nu
       nu_post[curr,] <- nu
-      phi_post[curr,] <- phi_vec
+      phi_post[[curr]] <- phi_post_matrix
 
       # Getting the posterior for y_hat_train
       y_hat_store[curr, ] <- if(scale_boolean){
@@ -1012,6 +1016,7 @@ gp_bart <- function(x_train, y, x_test,
                            x_train = x_train,
                            gp_variables = gp_variables)
 
+        phi_post_matrix[j,] <- phi_vec
 
         # current_partial_residuals_matrix<-
         current_partial_residuals_matrix[j, ] <- current_partial_residuals
