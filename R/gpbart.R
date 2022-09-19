@@ -409,7 +409,7 @@ gp_bart <- function(x_train, y, x_test,
 
     # Calculating \tau_{\mu} based on the scale of y
     tau_mu_bart <- (4 * number_trees * K_bart^2)
-    tau_mu_gpbart <- tau_mu_bart/kappa
+    tau_mu_gpbart <- tau_mu_bart
 
     # Getting the optimal tau values
     d_tau <- rate_tau(x = x_train,
@@ -482,7 +482,8 @@ gp_bart <- function(x_train, y, x_test,
   store_size <- (n_iter - burn)
   tree_store <- vector("list", store_size)
   tau_store <- c()
-  nu_post <- matrix(NA,ncol = number_trees, nrow = store_size)
+  nu_post <- phi_post <- matrix(NA,ncol = number_trees, nrow = store_size)
+
   y_hat_store <-
     y_hat_store_proposal <- matrix(NA, ncol = length(y), nrow = store_size)
 
@@ -552,7 +553,8 @@ gp_bart <- function(x_train, y, x_test,
       }
 
       # Storing posterior of nu
-      nu_post[curr,] <- nu[j]
+      nu_post[curr,] <- nu
+      phi_post[curr,] <- phi_vec
 
       # Getting the posterior for y_hat_train
       y_hat_store[curr, ] <- if(scale_boolean){
@@ -987,15 +989,26 @@ gp_bart <- function(x_train, y, x_test,
         # } # If doesn't accept, nothing changes.
 
 
-        nu[j] <- update_nu(current_tree = current_trees[[j]],
+        # nu[j] <- update_nu(current_tree = current_trees[[j]],
+        #                    likeli_obj = likelihood_object[[j]],
+        #                    current_nu = nu[j],
+        #                    current_partial_residuals = current_partial_residuals,
+        #                    number_trees = number_trees ,
+        #                    K_bart = K_bart,
+        #                    tau = tau,
+        #                    tau_mu = tau_mu,
+        #                    phi_vec = phi_vec,
+        #                    x_train = x_train,
+        #                    gp_variables = gp_variables)
+
+        phi_vec <- update_phi(current_tree = current_trees[[j]],
                            likeli_obj = likelihood_object[[j]],
-                           current_nu = nu[j],
+                           current_phi = phi_vec,
                            current_partial_residuals = current_partial_residuals,
                            number_trees = number_trees ,
                            K_bart = K_bart,
-                           tau = tau,
+                           tau = tau,nu = nu[j],up_crossings = up_crossings,
                            tau_mu = tau_mu,
-                           phi_vec = phi_vec,
                            x_train = x_train,
                            gp_variables = gp_variables)
 
@@ -1053,6 +1066,7 @@ gp_bart <- function(x_train, y, x_test,
                   loglike_tree_residuals_matrix = loglike_tree_residuals_matrix,
                   full_cond = full_cond_store,
                   nu_post = nu_post,
+                  phi_post = phi_post,
                   y = y_scale,
                   X = x_train_original,
                   x_scale = x_scale,
@@ -1434,5 +1448,66 @@ update_nu <- function(current_tree,
     return(current_nu)
     # return(0.1)
   }
+
+}
+
+
+
+update_phi <- function(current_tree,
+                      current_phi,
+                      nu,
+                      likeli_obj,
+                      current_partial_residuals,
+                      number_trees,
+                      up_crossings,
+                      K_bart,
+                      tau,
+                      tau_mu,
+                      x_train,
+                      gp_variables) {
+
+  # Setting the likelihood vectors
+  likelihood_new <- numeric()
+  likelihood_old <- numeric()
+
+
+  for(j in 1:ncol(x_train)){
+
+      # Getting the proposal nu
+      proposal_phi <- rep(sample(c(1/(2*pi*up_crossings),100),size = 1), ncol(x_train))
+
+      proposal_phi_vec <- current_phi
+
+      # Changing the specific needed dimension "j"
+      proposal_phi_vec[j] <- proposal_phi
+
+
+      new_trees <- inverse_omega_plus_I(tree = current_tree,x_train = x_train,
+                                        nu = nu,tau = tau,number_trees = number_trees,gp_variables = gp_variables,
+                                        phi_vec = proposal_phi_vec)
+
+      # Calculating the likelihood of the new tree
+      likelihood_new <- tree_complete_conditional_gpbart(
+        tree = new_trees,  # Calculate the full conditional
+        residuals = current_partial_residuals,
+        tau_mu = tau_mu, tau = tau,
+        nu = proposal_nu,
+        number_trees = number_trees
+      )$log_posterior
+
+
+
+      likelihood_new_total <- likelihood_new #+ dgamma(x = proposal_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
+      likelihood_old_total <-  likeli_obj$log_posterior# +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
+      # likelihood_old_total <-  likelihood_old# +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
+
+      acceptance <- exp((likelihood_new_total)-(likelihood_old_total))
+
+      if(runif(n = 1) < acceptance){
+        current_phi[j] <- proposal_phi
+      }
+  }
+
+  return(current_phi)
 
 }
