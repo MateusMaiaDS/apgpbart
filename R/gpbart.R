@@ -483,7 +483,7 @@ gp_bart <- function(x_train, y, x_test,
   tree_store <- vector("list", store_size)
   tau_store <- c()
   nu_post <-  matrix(NA,ncol = number_trees, nrow = store_size)
-  phi_post_matrix  <- matrix(NA,ncol = ncol(x_train), nrow = number_trees)
+  phi_post_matrix  <- matrix(NA,ncol = ncol(x_train[,gp_variables,drop = FALSE]), nrow = number_trees)
 
   # Phi post is actually a list
   phi_post <- list()
