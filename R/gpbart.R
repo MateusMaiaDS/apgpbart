@@ -1476,7 +1476,7 @@ update_phi <- function(current_tree,
   likelihood_old <- numeric()
 
 
-  for(j in 1:ncol(x_train)){
+  for(j in 1:ncol(x_train[,gp_variables,drop=FALSE])){
 
       # Getting the proposal nu
       proposal_phi <- sample(c(1/(2*pi*up_crossings),100),size = 1)
