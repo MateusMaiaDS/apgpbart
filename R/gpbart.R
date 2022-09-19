@@ -1498,11 +1498,11 @@ update_phi <- function(current_tree,
         tau_mu = tau_mu, tau = tau,
         nu = proposal_nu,
         number_trees = number_trees
-      )$log_posterior
+      )
 
 
 
-      likelihood_new_total <- likelihood_new #+ dgamma(x = proposal_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
+      likelihood_new_total <- likelihood_new$log_posterior #+ dgamma(x = proposal_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
       likelihood_old_total <-  likeli_obj$log_posterior# +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
       # likelihood_old_total <-  likelihood_old# +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
 
@@ -1510,6 +1510,8 @@ update_phi <- function(current_tree,
 
       if(runif(n = 1) < acceptance){
         current_phi[j] <- proposal_phi
+        new_trees <- current_tree
+        likeli_obj <- likelihood_new
       }
   }
 
