@@ -78,7 +78,7 @@ update_tau_mu_linero <- function(current_trees,
   if(stats::runif(n = 1)<acceptance){
     return(proposal_sigma^(-2))
   } else {
-    return(curr_tau_tau)
+    return(curr_tau_mu)
   }
 
 }
