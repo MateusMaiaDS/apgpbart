@@ -74,7 +74,7 @@ update_tau_mu_linero <- function(current_trees,
     }
   }
 
-  proposal_tau_mu <- stats::rgamma(n = 1,shape = 0.5*n_terminal_nodes+1,rate = 0.5*(norm(matrix(mu_terminal),type = "2")^2))
+  proposal_tau_mu <- stats::rgamma(n = 1,shape = 0.5*n_terminal_nodes+1,rate = 0.5*(crossprod(mu_terminal)))
 
   proposal_sigma <- proposal_tau_mu^(-1/2)
 
