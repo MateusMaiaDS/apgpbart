@@ -59,7 +59,7 @@ update_tau_mu_linero <- function(current_trees,
                               current_predictions,
                               curr_tau_mu){
   # Getting number of observations
-  n <- length(y)
+  n <- ncol(current_predictions)
   # Calculating current sigma
   curr_sigma <- curr_tau_mu^(-1/2)
 
