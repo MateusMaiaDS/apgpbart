@@ -55,24 +55,24 @@ dh_cauchy <- function(x,location,sigma){
 }
 
 # Check the appendix of Linero SoftBART for more details
-update_tau_linero <- function(x_train,
-                              y,
-                              y_hat,
-                              curr_tau){
+update_tau_mu_linero <- function(current_trees,
+                              current_predictions,
+                              curr_tau_mu){
   # Getting number of observations
   n <- length(y)
   # Calculating current sigma
-  curr_sigma <- curr_tau^(-1/2)
+  curr_sigma <- curr_tau_mu^(-1/2)
 
-  sigma_naive <- naive_sigma(x = x_train,y = y)
 
-  proposal_tau <- stats::rgamma(n = 1,shape = 0.5*n+1,rate = 0.5*crossprod( (y-y_hat) ))
+  n_terminal_nodes <- sum(unlist(lapply(current_trees, function(y){ lapply(y, function(z){ z$terminal ==1}) }) ))
+
+  proposal_tau_mu <- stats::rgamma(n = 1,shape = 0.5*n*n_terminal_nodes+1,rate = 0.5*(norm(current_predictions)^2))
 
   proposal_sigma <- proposal_tau^(-1/2)
 
-  acceptance <- exp(log(dh_cauchy(x = proposal_sigma,location = 0,sigma = sigma_naive)) +
+  acceptance <- exp(log(dh_cauchy(x = proposal_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) +
                 3*log(proposal_sigma) -
-                log(dh_cauchy(x = curr_sigma,location = 0,sigma = sigma_naive)) -
+                log(dh_cauchy(x = curr_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) -
                 3*log(curr_sigma))
 
   if(stats::runif(n = 1)<acceptance){

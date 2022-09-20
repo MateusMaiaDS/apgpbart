@@ -298,6 +298,7 @@ gp_bart <- function(x_train, y, x_test,
                     theta = NULL, # If theta is NULL, then the rotation angle will be randomly selected
                     seed = NULL, # Alpha vector values from the Dirichlet prior
                     scale_boolean = TRUE,
+                    update_tau_mu_bool = TRUE,
                     # This will be defining the nu the default value
                     nu = NULL,
                     a_tau = 1.5, # Prior from a_v_ratio gamma
@@ -482,6 +483,7 @@ gp_bart <- function(x_train, y, x_test,
   store_size <- (n_iter - burn)
   tree_store <- vector("list", store_size)
   tau_store <- c()
+  tau_mu_store <- c()
   nu_post <-  matrix(NA,ncol = number_trees, nrow = store_size)
   phi_post_matrix  <- matrix(NA,ncol = ncol(x_train[,gp_variables,drop = FALSE]), nrow = number_trees)
 
@@ -555,6 +557,8 @@ gp_bart <- function(x_train, y, x_test,
       } else {
         tau
       }
+
+      tau_mu_store[curr] <- tau_mu
 
       # Storing posterior of nu
       nu_post[curr,] <- nu
@@ -1037,20 +1041,10 @@ gp_bart <- function(x_train, y, x_test,
                        d_tau = d_tau,
                        predictions = colSums(predictions))
 
-    # if(!bart_boolean){
-    #   phi_vector_aux <- optim(par = runif(n = 1,
-    #                       min = distance_min,
-    #                       max = distance_max),
-    #                       method = "L-BFGS-B",
-    #                       lower = distance_min+.Machine$double.eps,
-    #                       upper = distance_max,
-    #                       fn = log_like_partial_length_parameter,
-    #                       squared_distance_matrix = distance_matrix_x,
-    #                       tau = tau,
-    #                       y = y_scale)$par
-    #
-    #   phi_vector <- rep(phi_vector_aux,number_trees)
-    # }
+    # Updating tau mu using linero prior
+    if(update_tau_mu_bool){
+      tau_mu <- update_tau_mu_linero(current_trees = current_trees,current_predictions = predictions,curr_tau_mu = tau_mu)
+    }
 
   } # End of Loop through the n_inter
   cat("\n")
@@ -1063,6 +1057,7 @@ gp_bart <- function(x_train, y, x_test,
 
   results <- list(trees = tree_store,
                   tau_store = tau_store,
+                  tau_mu_store = tau_mu_store,
                   y_hat = y_hat_store,
                   y_hat_test = y_hat_test_store,
                   log_lik = log_lik_store,
