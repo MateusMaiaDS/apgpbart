@@ -66,7 +66,7 @@ update_tau_mu_linero <- function(current_trees,
 
   n_terminal_nodes <- sum(unlist(lapply(current_trees, function(y){ lapply(y, function(z){ z$terminal ==1}) }) ))
 
-  proposal_tau_mu <- stats::rgamma(n = 1,shape = 0.5*n*n_terminal_nodes+1,rate = 0.5*(norm(current_predictions)^2))
+  proposal_tau_mu <- stats::rgamma(n = 1,shape = 0.5*n*length(current_trees)+1,rate = 0.5*(norm(current_predictions)^2))
 
   proposal_sigma <- proposal_tau_mu^(-1/2)
 
@@ -75,7 +75,9 @@ update_tau_mu_linero <- function(current_trees,
                 log(dh_cauchy(x = curr_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) -
                 3*log(curr_sigma))
 
+  # print(acceptance)
   if(stats::runif(n = 1)<acceptance){
+    # print("ACCEPT!")
     return(proposal_sigma^(-2))
   } else {
     return(curr_tau_mu)

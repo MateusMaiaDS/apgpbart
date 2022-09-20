@@ -410,7 +410,7 @@ gp_bart <- function(x_train, y, x_test,
 
     # Calculating \tau_{\mu} based on the scale of y
     tau_mu_bart <- (4 * number_trees * K_bart^2)
-    tau_mu_gpbart <- tau_mu_bart
+    tau_mu <- tau_mu_gpbart <- tau_mu_bart
 
     # Getting the optimal tau values
     d_tau <- rate_tau(x = x_train,
@@ -543,8 +543,8 @@ gp_bart <- function(x_train, y, x_test,
     # Changing the bart boolean, when reach the maximum
     if(i >= bart_number_iter){
       bart_boolean <- FALSE
-      tau_mu <- tau_mu_gpbart
-    } else tau_mu <- tau_mu_bart
+      # tau_mu <- tau_mu_gpbart
+    } # else tau_mu <- tau_mu_bart
 
     if((i > burn) && ((i %% thin) == 0)) {
 
@@ -1042,8 +1042,9 @@ gp_bart <- function(x_train, y, x_test,
                        predictions = colSums(predictions))
 
     # Updating tau mu using linero prior
-    if(update_tau_mu_bool){
+    if(update_tau_mu_bool & isFALSE(bart_boolean)){
       tau_mu <- update_tau_mu_linero(current_trees = current_trees,current_predictions = predictions,curr_tau_mu = tau_mu)
+      nu <- rep(tau_mu, length(nu))
     }
 
   } # End of Loop through the n_inter
