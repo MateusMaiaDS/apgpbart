@@ -56,8 +56,47 @@ dh_cauchy <- function(x,location,sigma){
 
 # Check the appendix of Linero SoftBART for more details
 update_tau_mu_linero <- function(current_trees,
-                              current_predictions,
                               curr_tau_mu){
+
+  # Calculating current sigma
+  curr_sigma <- curr_tau_mu^(-1/2)
+
+  # Getting the number of termina nodes
+  n_terminal_nodes <- sum(unlist(lapply(current_trees, function(y){ lapply(y, function(z){ z$terminal ==1}) }) ))
+
+  # Getting the mu's
+  mu_terminal <- c()
+  for(k in 1:length(current_trees)){
+    for(j in 1:length(current_trees[[k]])){
+      if(current_trees[[k]][[j]]$terminal==1){
+          mu_terminal <- c(mu_terminal,current_trees[[k]][[j]]$mu)
+          }
+    }
+  }
+
+  proposal_tau_mu <- stats::rgamma(n = 1,shape = 0.5*n_terminal_nodes+1,rate = 0.5*(norm(matrix(mu_terminal))^2))
+
+  proposal_sigma <- proposal_tau_mu^(-1/2)
+
+  acceptance <- exp(log(dh_cauchy(x = proposal_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) +
+                3*log(proposal_sigma) -
+                log(dh_cauchy(x = curr_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) -
+                3*log(curr_sigma))
+
+  # print(acceptance)
+  if(stats::runif(n = 1)<acceptance){
+    # print("ACCEPT!")
+    return(proposal_sigma^(-2))
+  } else {
+    return(curr_tau_mu)
+  }
+
+}
+
+# Check the appendix of Linero SoftBART for more details
+update_nu_linero <- function(current_trees,
+                                 current_predictions,
+                                 curr_tau_mu){
   # Getting number of observations
   n <- ncol(current_predictions)
   # Calculating current sigma
@@ -71,9 +110,9 @@ update_tau_mu_linero <- function(current_trees,
   proposal_sigma <- proposal_tau_mu^(-1/2)
 
   acceptance <- exp(log(dh_cauchy(x = proposal_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) +
-                3*log(proposal_sigma) -
-                log(dh_cauchy(x = curr_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) -
-                3*log(curr_sigma))
+                      3*log(proposal_sigma) -
+                      log(dh_cauchy(x = curr_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) -
+                      3*log(curr_sigma))
 
   # print(acceptance)
   if(stats::runif(n = 1)<acceptance){

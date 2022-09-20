@@ -1044,7 +1044,6 @@ gp_bart <- function(x_train, y, x_test,
     # Updating tau mu using linero prior
     if(update_tau_mu_bool & isFALSE(bart_boolean)){
       tau_mu <- update_tau_mu_linero(current_trees = current_trees,current_predictions = predictions,curr_tau_mu = tau_mu)
-      nu <- rep(tau_mu, length(nu))
     }
 
   } # End of Loop through the n_inter
