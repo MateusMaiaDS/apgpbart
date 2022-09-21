@@ -299,6 +299,7 @@ gp_bart <- function(x_train, y, x_test,
                     seed = NULL, # Alpha vector values from the Dirichlet prior
                     scale_boolean = TRUE,
                     update_tau_mu_bool = TRUE,
+                    update_nu_bool = TRUE,
                     # This will be defining the nu the default value
                     nu = NULL,
                     a_tau = 1.5, # Prior from a_v_ratio gamma
@@ -1045,6 +1046,13 @@ gp_bart <- function(x_train, y, x_test,
     if(update_tau_mu_bool & isFALSE(bart_boolean)){
       tau_mu <- update_tau_mu_linero(current_trees = current_trees,curr_tau_mu = tau_mu)
     }
+
+    # Updating nu by a inspired prior in \nu
+    if(update_nu_bool & isFALSE(bart_boolean)){
+      nu_aux <- update_nu_linero(current_predictions = predictions,number_trees = number_trees,curr_nu = nu[number_trees])
+      nu <- rep(nu_aux,number_trees)
+    }
+
 
   } # End of Loop through the n_inter
   cat("\n")

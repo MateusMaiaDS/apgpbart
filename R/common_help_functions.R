@@ -94,24 +94,22 @@ update_tau_mu_linero <- function(current_trees,
 }
 
 # Check the appendix of Linero SoftBART for more details
-update_nu_linero <- function(current_trees,
-                                 current_predictions,
-                                 curr_tau_mu){
+update_nu_linero <- function(number_trees,
+                             current_predictions,
+                             curr_nu){
   # Getting number of observations
   n <- ncol(current_predictions)
   # Calculating current sigma
-  curr_sigma <- curr_tau_mu^(-1/2)
+  curr_sigma <- curr_nu^(-1/2)
 
+  # Getting the proposal
+  proposal_nu <- stats::rgamma(n = 1,shape = 0.5*n*number_trees+1,rate = 0.5*(crossprod(current_predictions)))
 
-  n_terminal_nodes <- sum(unlist(lapply(current_trees, function(y){ lapply(y, function(z){ z$terminal ==1}) }) ))
+  proposal_sigma <- proposal_nu^(-1/2)
 
-  proposal_tau_mu <- stats::rgamma(n = 1,shape = 0.5*n*length(current_trees)+1,rate = 0.5*(norm(current_predictions)^2))
-
-  proposal_sigma <- proposal_tau_mu^(-1/2)
-
-  acceptance <- exp(log(dh_cauchy(x = proposal_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) +
+  acceptance <- exp(log(dh_cauchy(x = proposal_sigma,location = 0,sigma = 0.25/sqrt(number_trees))) +
                       3*log(proposal_sigma) -
-                      log(dh_cauchy(x = curr_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) -
+                      log(dh_cauchy(x = curr_sigma,location = 0,sigma = 0.25/sqrt(number_trees))) -
                       3*log(curr_sigma))
 
   # print(acceptance)
@@ -119,7 +117,7 @@ update_nu_linero <- function(current_trees,
     # print("ACCEPT!")
     return(proposal_sigma^(-2))
   } else {
-    return(curr_tau_mu)
+    return(curr_nu)
   }
 
 }
