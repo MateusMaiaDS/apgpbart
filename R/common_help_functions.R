@@ -203,7 +203,7 @@ rate_tau <- function(x, # X value
                        y = y)
 
   # Getting the root
-  min_root <-  try(stats::uniroot(f = zero_tau_prob, interval = c(1e-3, 1000),
+  min_root <-  try(stats::uniroot(f = zero_tau_prob, interval = c(1e-8, 1000),
                            naive_tau_value = tau_ols,
                            prob = prob, shape = shape)$root, silent = TRUE)
 
