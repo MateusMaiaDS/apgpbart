@@ -410,7 +410,7 @@ gp_bart <- function(x_train, y, x_test,
     a_tau <- df/2
 
     # Calculating lambda
-    qchi <- stats::qchisq(p = 1-sigquant,df = df,lower.tail = 1,ncp = 0)
+    qchi <- stats::qchisq(p = 1-prob_tau,df = df,lower.tail = 1,ncp = 0)
     lambda <- (nsigma*nsigma*qchi)/df
     d_tau <- (lambda*df)/2
 
@@ -435,7 +435,7 @@ gp_bart <- function(x_train, y, x_test,
     a_tau <- df/2
 
     # Calculating lambda
-    qchi <- stats::qchisq(p = 1-sigquant,df = df,lower.tail = 1,ncp = 0)
+    qchi <- stats::qchisq(p = 1-prob_tau,df = df,lower.tail = 1,ncp = 0)
     lambda <- (nsigma*nsigma*qchi)/df
     d_tau <- (lambda*df)/2
 
