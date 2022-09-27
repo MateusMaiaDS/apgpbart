@@ -302,8 +302,7 @@ gp_bart <- function(x_train, y, x_test,
                     update_nu_bool = TRUE,
                     # This will be defining the nu the default value
                     nu = NULL,
-                    a_tau = 1.5, # Prior from a_v_ratio gamma
-                    # d_tau = 1, # Prior from d_v_ratio gamma,
+                    df = 3,
                     x_scale =  TRUE,
                     gp_variables = colnames(x_train),   # Selecting the GP-Variables
                     K_bart = 2,
@@ -351,15 +350,6 @@ gp_bart <- function(x_train, y, x_test,
       xscale_test[,i] <- normalize_covariates_bart(y = x_test[,i],a = x_min[i],b = x_max[i])
     }
 
-    # Scaled version ( Std. version)
-    # xscale <- scale(x_train)
-    #
-    # mean_x <- attr(xscale,"scaled:center")
-    # sd_x <- attr(xscale,"scaled:scale")
-    #
-    # xscale_train <- scale(x_train,center = mean_x,scale = sd_x)
-    # xscale_test <- scale(x_test, center = mean_x, scale = sd_x)
-    #
 
     # The result of scaling
     x_train <- as.matrix(xscale_train)
@@ -413,11 +403,16 @@ gp_bart <- function(x_train, y, x_test,
     tau_mu_bart <- (4 * number_trees * K_bart^2)
     tau_mu <- tau_mu_gpbart <- tau_mu_bart
 
-    # Getting the optimal tau values
-    d_tau <- rate_tau(x = x_train,
-                      y = y_scale,
-                      prob = prob_tau,
-                      shape = a_tau)
+    # Getting the naive sigma
+    nsigma <- naive_sigma(x = x_train,y = y_scale)
+
+    # Getting the shape
+    a_tau <- df/2
+
+    # Calculating lambda
+    qchi <- stats::qchisq(p = 1-sigquant,df = df,lower.tail = 1,ncp = 0)
+    lambda <- (nsigma*nsigma*qchi)/df
+    d_tau <- (lambda*df)/2
 
   } else {
 
@@ -433,11 +428,17 @@ gp_bart <- function(x_train, y, x_test,
     tau_mu_bart <- (4 * number_trees * K_bart^2)/((max(y_scale) - min(y_scale))^2)
     tau_mu_gpbart <- tau_mu_bart/kappa
 
-    # Getting the optimal tau values
-    d_tau <- rate_tau(x = x_train,
-                      y = y_scale,
-                      prob = prob_tau,
-                      shape = a_tau)
+    # Getting the naive sigma
+    nsigma <- naive_sigma(x = x_train,y = y_scale)
+
+    # Getting the shape
+    a_tau <- df/2
+
+    # Calculating lambda
+    qchi <- stats::qchisq(p = 1-sigquant,df = df,lower.tail = 1,ncp = 0)
+    lambda <- (nsigma*nsigma*qchi)/df
+    d_tau <- (lambda*df)/2
+
   }
 
 
