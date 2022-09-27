@@ -179,7 +179,7 @@ update_residuals <- function(tree,
                              x_train,
                              x_test,
                              nu, residuals,
-                             tau, phi_vec) {
+                             tau, phi_vec,gp_variables) {
 
   # New g (new vector prediction for g)
   residuals_train_new <- rep(NA, nrow(x_train))
@@ -202,40 +202,29 @@ update_residuals <- function(tree,
 
 
   # Defining the kernel function
-  # phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
+  # phi_vec <- lapply(terminal_nodes, function(node){apply(x_train[node$train_observations_index,gp_variables,drop = FALSE],2,function(y){abs(diff(range(y)))/(2*pi*1)} + 1e-5)}) # Takking care with this phi addition to avoid \phi =0
 
-  train_distance_matrix_node <- mapply(terminal_nodes,phi_vec,FUN =  function(z,phi_values) {
-    symm_distance_matrix(m1 = x_train[z$train_observations_index,,drop = FALSE],phi_vector = phi_values)
-  })
+  # train_distance_matrix_node <- mapply(terminal_nodes,phi_vec,FUN =  function(z,phi_values) {
+  #   symm_distance_matrix(m1 = x_train[z$train_observations_index,gp_variables,drop = FALSE],phi_vector = phi_values)
+  # })
 
   train_residuals_sample <- mapply(terminal_nodes,
                                    residuals_terminal_nodes,
                                    mu_values,
                                    FUN = function(node,resid_val,mu_val)
-                                   {mu_val + gp_main_slow(x_train = x_train[node$train_observations_index,,drop = FALSE],
-                                                          x_star = x_train[node$train_observations_index,,drop = FALSE],
+                                   {mu_val + gp_main_slow(x_train = x_train[node$train_observations_index,gp_variables,drop = FALSE],
+                                                          x_star = x_train[node$train_observations_index,gp_variables,drop = FALSE],
                                                           y_train = (resid_val-mu_val),
                                                           tau = tau,nu = nu,phi_vec = phi_vec,
                                                           get_sample = TRUE)$mu_pred},SIMPLIFY = FALSE)
-
-  # Debugging the function
-  # current_node <- terminal_nodes$node_0
-  # resid_value <- residuals_terminal_nodes$node_0
-  # mu_val <- mu_values[1]
-  #
-  # x_train <- x_train[current_node$train_observations_index,,drop = FALSE]
-  # x_star <- x_train[current_node$train_observations_index,,drop = FALSE]
-  # y_train <- resid_value - mu_val
-  # get_sample <- TRUE
-
 
   test_residuals_sample <- mapply(terminal_nodes,
                                   residuals_terminal_nodes,
                                   mu_values,
                                   FUN = function(node,resid_val,mu_val)
-                                  {mu_val + gp_main_slow(x_train = x_train[node$train_observations_index,,drop = FALSE],
-                                                         x_star = x_test[node$test_observations_index,,drop = FALSE],
-                                                         y_train = (resid_val-mu_val),
+                                  {mu_val + gp_main_slow(x_train = x_train[node$train_observations_index,gp_variables,drop = FALSE],
+                                                         x_star = x_test[node$test_observations_index,gp_variables,drop = FALSE],
+                                                         y_train = (resid_val-mu_val),phi_vec = phi_vec,
                                                          tau = tau,nu = nu,get_sample = TRUE)$mu_pred},SIMPLIFY = FALSE)
 
   # Adding the mu values calculated
@@ -298,6 +287,7 @@ gp_bart <- function(x_train, y, x_test,
                     theta = NULL, # If theta is NULL, then the rotation angle will be randomly selected
                     seed = NULL, # Alpha vector values from the Dirichlet prior
                     scale_boolean = TRUE,
+                    phi_boolean = TRUE,
                     update_tau_mu_bool = TRUE,
                     update_nu_bool = TRUE,
                     # This will be defining the nu the default value
@@ -967,6 +957,15 @@ gp_bart <- function(x_train, y, x_test,
           gp_variables = gp_variables
         )
 
+        # update_residuals_aux <- update_residuals(
+        #   tree = current_trees[[j]],
+        #   x_train = x_train,x_test = x_test,
+        #   residuals = current_partial_residuals,
+        #   nu = nu[j],tau = tau,phi_vec = phi_vec,
+        #   gp_variables = gp_variables
+        # )
+
+
         predictions[j, ] <- update_residuals_aux$residuals_train
         predictions_test[j, ]<- update_residuals_aux$residuals_test
 
@@ -1011,17 +1010,19 @@ gp_bart <- function(x_train, y, x_test,
         #                    x_train = x_train,
         #                    gp_variables = gp_variables)
 
-        phi_vec <- update_phi(current_tree = current_trees[[j]],
-                           likeli_obj = likelihood_object[[j]],
-                           current_phi = phi_vec,
-                           current_partial_residuals = current_partial_residuals,
-                           number_trees = number_trees ,
-                           K_bart = K_bart,
-                           tau = tau,nu = nu[j],up_crossings = up_crossings,
-                           tau_mu = tau_mu,
-                           x_train = x_train,
-                           gp_variables = gp_variables)
-
+        # Updating phi or not;
+        if(phi_boolean){
+            phi_vec <- update_phi(current_tree = current_trees[[j]],
+                               likeli_obj = likelihood_object[[j]],
+                               current_phi = phi_vec,
+                               current_partial_residuals = current_partial_residuals,
+                               number_trees = number_trees ,
+                               K_bart = K_bart,
+                               tau = tau,nu = nu[j],up_crossings = up_crossings,
+                               tau_mu = tau_mu,
+                               x_train = x_train,
+                               gp_variables = gp_variables)
+        }
         phi_post_matrix[j,] <- phi_vec
 
         # current_partial_residuals_matrix<-
