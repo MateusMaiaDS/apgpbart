@@ -287,7 +287,7 @@ gp_bart <- function(x_train, y, x_test,
                     theta = NULL, # If theta is NULL, then the rotation angle will be randomly selected
                     seed = NULL, # Alpha vector values from the Dirichlet prior
                     scale_boolean = TRUE,
-                    phi_boolean = TRUE,
+                    phi_boolean = TRUE, # Update phi?
                     update_tau_mu_bool = TRUE,
                     update_nu_bool = TRUE,
                     # This will be defining the nu the default value
@@ -543,12 +543,6 @@ gp_bart <- function(x_train, y, x_test,
       # Saving the store of the other ones
       curr <- (i - burn) / thin
       tree_store[[curr]] <- lapply(current_trees, remove_omega_plus_I_inv)
-
-      tau_store[curr] <- if(scale_boolean){
-        tau/((b_max-a_min)^2)
-      } else {
-        tau
-      }
 
       tau_mu_store[curr] <- tau_mu
 
@@ -1045,7 +1039,7 @@ gp_bart <- function(x_train, y, x_test,
                        predictions = colSums(predictions))
 
     # Updating tau mu using linero prior
-    if(update_tau_mu_bool & isFALSE(bart_boolean)){
+    if(update_tau_mu_bool ){
       tau_mu <- update_tau_mu_linero(current_trees = current_trees,curr_tau_mu = tau_mu)
     }
 
@@ -1053,6 +1047,13 @@ gp_bart <- function(x_train, y, x_test,
     if(update_nu_bool & isFALSE(bart_boolean)){
       nu_aux <- update_nu_linero(current_predictions = predictions,number_trees = number_trees,curr_nu = nu[number_trees])
       nu <- rep(nu_aux,number_trees)
+    }
+
+    # Storing all tau values
+    tau_store[i] <- if(scale_boolean){
+      tau/((b_max-a_min)^2)
+    } else {
+      tau
     }
 
 
