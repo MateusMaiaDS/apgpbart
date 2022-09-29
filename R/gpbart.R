@@ -104,9 +104,7 @@ update_mu <- function(tree,
 
   # Adding the mu values calculated
   for(i in seq_along(names_terminal_nodes)) {
-    # tree[[names_terminal_nodes[i]]]$mu <- mu[[names_terminal_nodes[i]]]
-    tree[[names_terminal_nodes[i]]]$mu <- 0
-
+    tree[[names_terminal_nodes[i]]]$mu <- mu[[names_terminal_nodes[i]]]
   }
   return(tree)
 }
