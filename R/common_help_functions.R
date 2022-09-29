@@ -30,7 +30,8 @@ update_tau <- function(x,
                        y,
                        a_tau,
                        d_tau,
-                       predictions) {
+                       predictions,
+                       K_bart = K_bart) {
 
   # Calculating the values of a and d
   n <- nrow(x)
@@ -56,7 +57,7 @@ dh_cauchy <- function(x,location,sigma){
 
 # Check the appendix of Linero SoftBART for more details
 update_tau_mu_linero <- function(current_trees,
-                              curr_tau_mu){
+                              curr_tau_mu,K_bart){
 
   # Calculating current sigma
   curr_sigma <- curr_tau_mu^(-1/2)
@@ -78,15 +79,15 @@ update_tau_mu_linero <- function(current_trees,
 
   proposal_sigma <- proposal_tau_mu^(-1/2)
 
-  acceptance <- exp(log(dh_cauchy(x = proposal_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) +
+  acceptance <- exp(log(dh_cauchy(x = proposal_sigma,location = 0,sigma = (0.5*(K_bart^-1))/sqrt(length(current_trees)))) +
                 3*log(proposal_sigma) -
-                log(dh_cauchy(x = curr_sigma,location = 0,sigma = 0.25/sqrt(length(current_trees)))) -
+                log(dh_cauchy(x = curr_sigma,location = 0,sigma = (0.5*(K_bart^-1))/sqrt(length(current_trees)))) -
                 3*log(curr_sigma))
 
   # print(acceptance)
   if(stats::runif(n = 1)<acceptance){
     # print("ACCEPT!")
-    return(proposal_sigma^(-2))
+    return(proposal_tau_mu)
   } else {
     return(curr_tau_mu)
   }

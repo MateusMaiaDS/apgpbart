@@ -354,14 +354,14 @@ gp_bart <- function(x_train, y, x_test,
   kappa_aux <- 0
 
   # Adjusting the kappa (avoiding the Infinity error)
-  if(kappa == 1 ){
-    kappa_aux <- 1
-    kappa <- kappa - 2*.Machine$double.eps
-  }
-
-  if(kappa == 0 ){
-    kappa <- kappa + 2*.Machine$double.eps
-  }
+  # if(kappa == 1 ){
+  #   kappa_aux <- 1
+  #   kappa <- kappa - 2*.Machine$double.eps
+  # }
+  #
+  # if(kappa == 0 ){
+  #   kappa <- kappa + 2*.Machine$double.eps
+  # }
 
 
 
@@ -403,6 +403,7 @@ gp_bart <- function(x_train, y, x_test,
     qchi <- stats::qchisq(p = 1-prob_tau,df = df,lower.tail = 1,ncp = 0)
     lambda <- (nsigma*nsigma*qchi)/df
     d_tau <- (lambda*df)/2
+
 
   } else {
 
@@ -1040,7 +1041,7 @@ gp_bart <- function(x_train, y, x_test,
 
     # Updating tau mu using linero prior
     if(update_tau_mu_bool ){
-      tau_mu <- update_tau_mu_linero(current_trees = current_trees,curr_tau_mu = tau_mu)
+      tau_mu <- update_tau_mu_linero(current_trees = current_trees,curr_tau_mu = tau_mu,K_bart = K_bart)
     }
 
     # Updating nu by a inspired prior in \nu
@@ -1452,7 +1453,7 @@ update_nu <- function(current_tree,
 
   acceptance <- exp((likelihood_new_total)-(likelihood_old_total))
 
-  if(runif(n = 1) < acceptance){
+  if(stats::runif(n = 1) < acceptance){
     return(proposal_nu)
     # return(0.1)
   } else {
