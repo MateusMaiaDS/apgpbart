@@ -105,7 +105,7 @@ update_nu_linero <- function(number_trees,
   curr_sigma <- curr_nu^(-1/2)
 
   # Getting the proposal
-  proposal_nu <- stats::rgamma(n = 1,shape = 0.5*n+1,rate = 0.5*(norm(current_predictions,type = 2)^2))
+  proposal_nu <- stats::rgamma(n = 1,shape = 0.5*n+1,rate = 0.5*(norm(current_predictions,type = "2")^2))
 
   proposal_sigma <- proposal_nu^(-1/2)
 
