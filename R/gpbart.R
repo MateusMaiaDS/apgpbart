@@ -6,7 +6,7 @@
 # ==================================#
 
 
-tree_complete_conditional_gpbart <- function(tree, residuals, nu = 1, phi = 1,
+tree_complete_conditional_gpbart <- function(tree, residuals, nu = 1,
                                              tau_mu, tau,
                                              number_trees = number_trees) {
 
@@ -383,6 +383,8 @@ gp_bart <- function(x_train, y, x_test,
     # Normalizing y
     y_scale <- normalize_bart(y = y)
 
+    y_scale_sd_ <- stats::sd(y_scale)
+
     # Defing the nu vector if not in default
     if(is.null(nu)) {
       # Defining the nu value values on the maximum and minimum
@@ -409,6 +411,8 @@ gp_bart <- function(x_train, y, x_test,
 
     # Not scaling the y
     y_scale <- y
+
+    y_scale_sd_ <- stats::sd(y_scale)
 
     if(is.null(nu)) {
       # Defining the nu value values on the maximum and minimum
@@ -1046,7 +1050,9 @@ gp_bart <- function(x_train, y, x_test,
 
     # Updating nu by a inspired prior in \nu
     if(update_nu_bool & isFALSE(bart_boolean)){
-      nu_aux <- update_nu_linero(current_predictions = predictions,number_trees = number_trees,curr_nu = nu[number_trees])
+      nu_aux <- update_nu_linero(current_predictions = predictions,
+                                 number_trees = number_trees,curr_nu = nu[number_trees],
+                                 y_scale_sd = y_scale_sd_)
       nu <- rep(nu_aux,number_trees)
     }
 
@@ -1410,58 +1416,58 @@ pi_coverage <- function(y, y_hat_post, sd_post,only_post = FALSE, prob = 0.5,n_m
 }
 
 
-update_nu <- function(current_tree,
-                      current_nu,
-                      likeli_obj,
-                      current_partial_residuals,
-                      # a_nu,
-                      # d_nu ,
-
-                      number_trees,
-                      K_bart,
-                      tau,
-                      tau_mu,
-                      phi_vec,
-                      x_train,
-                      gp_variables) {
-
-  # Setting the likelihood vectors
-  likelihood_new <- numeric()
-  likelihood_old <- numeric()
-
-  # Getting the proposal nu
-  proposal_nu <- sample(c(1e18,c(0.01,0.1,0.5,1,2,4,8,16,32,64)*(4*(K_bart^2)*number_trees)),size = 1)
-
-        new_trees <- inverse_omega_plus_I(tree = current_tree,x_train = x_train,
-                                                   nu = proposal_nu,tau = tau,number_trees = number_trees,gp_variables = gp_variables,
-                                                   phi_vec = phi_vec)
-
-        # Calculating the likelihood of the new tree
-        likelihood_new <- tree_complete_conditional_gpbart(
-          tree = new_trees,  # Calculate the full conditional
-          residuals = current_partial_residuals,
-          tau_mu = tau_mu, tau = tau,
-          nu = proposal_nu,
-          number_trees = number_trees
-        )$log_posterior
-
-
-
-  likelihood_new_total <- likelihood_new #+ dgamma(x = proposal_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
-  likelihood_old_total <-  likeli_obj$log_posterior# +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
-  # likelihood_old_total <-  likelihood_old# +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
-
-  acceptance <- exp((likelihood_new_total)-(likelihood_old_total))
-
-  if(stats::runif(n = 1) < acceptance){
-    return(proposal_nu)
-    # return(0.1)
-  } else {
-    return(current_nu)
-    # return(0.1)
-  }
-
-}
+# update_nu <- function(current_tree,
+#                       current_nu,
+#                       likeli_obj,
+#                       current_partial_residuals,
+#                       # a_nu,
+#                       # d_nu ,
+#
+#                       number_trees,
+#                       K_bart,
+#                       tau,
+#                       tau_mu,
+#                       phi_vec,
+#                       x_train,
+#                       gp_variables) {
+#
+#   # Setting the likelihood vectors
+#   likelihood_new <- numeric()
+#   likelihood_old <- numeric()
+#
+#   # Getting the proposal nu
+#   proposal_nu <- sample(c(1e18,c(0.01,0.1,0.5,1,2,4,8,16,32,64)*(4*(K_bart^2)*number_trees)),size = 1)
+#
+#         new_trees <- inverse_omega_plus_I(tree = current_tree,x_train = x_train,
+#                                                    nu = proposal_nu,tau = tau,number_trees = number_trees,gp_variables = gp_variables,
+#                                                    phi_vec = phi_vec)
+#
+#         # Calculating the likelihood of the new tree
+#         likelihood_new <- tree_complete_conditional_gpbart(
+#           tree = new_trees,  # Calculate the full conditional
+#           residuals = current_partial_residuals,
+#           tau_mu = tau_mu, tau = tau,
+#           nu = proposal_nu,
+#           number_trees = number_trees
+#         )$log_posterior
+#
+#
+#
+#   likelihood_new_total <- likelihood_new #+ dgamma(x = proposal_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
+#   likelihood_old_total <-  likeli_obj$log_posterior# +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
+#   # likelihood_old_total <-  likelihood_old# +  dgamma(x = current_nu,shape = (4*(K_bart^2)*number_trees)*0.00001,rate = (4*(K_bart^2)*number_trees)*0.00001,log = TRUE)
+#
+#   acceptance <- exp((likelihood_new_total)-(likelihood_old_total))
+#
+#   if(stats::runif(n = 1) < acceptance){
+#     return(proposal_nu)
+#     # return(0.1)
+#   } else {
+#     return(current_nu)
+#     # return(0.1)
+#   }
+#
+# }
 
 
 
@@ -1503,7 +1509,7 @@ update_phi <- function(current_tree,
         tree = new_trees,  # Calculate the full conditional
         residuals = current_partial_residuals,
         tau_mu = tau_mu, tau = tau,
-        nu = proposal_nu,
+        nu = nu,
         number_trees = number_trees
       )
 
@@ -1515,7 +1521,7 @@ update_phi <- function(current_tree,
 
       acceptance <- exp((likelihood_new_total)-(likelihood_old_total))
 
-      if(runif(n = 1) < acceptance){
+      if(stats::runif(n = 1) < acceptance){
         current_phi[j] <- proposal_phi
         new_trees <- current_tree
         likeli_obj <- likelihood_new
