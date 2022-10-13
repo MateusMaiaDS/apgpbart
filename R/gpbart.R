@@ -1492,7 +1492,10 @@ update_phi <- function(current_tree,
   for(j in 1:ncol(x_train[,gp_variables,drop=FALSE])){
 
       # Getting the proposal nu
-      proposal_phi <- sample(c(1/(2*pi*up_crossings),100),size = 1)
+      # proposal_phi <- sample(c(1/(2*pi*up_crossings),100),,size = 1)
+      proposal_phi <- sample(c(1/(2*pi*up_crossings),1/(2*pi*up_crossings*2),
+                               1/(2*pi*up_crossings*5),1/(2*pi*up_crossings*10),
+                               1/(2*pi*up_crossings*0.5),1/(2*pi*up_crossings*0.1),100),,size = 1)
 
       proposal_phi_vec <- current_phi
 
